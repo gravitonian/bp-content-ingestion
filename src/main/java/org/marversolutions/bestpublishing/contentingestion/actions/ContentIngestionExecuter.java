@@ -14,20 +14,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package org.marversolutions.bestpublishing.contentchecker.actions;
+package org.marversolutions.bestpublishing.contentingestion.actions;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.io.FilenameUtils;
-import org.marversolutions.bestpublishing.contentchecker.exceptions.ContentIngestionException;
-import org.marversolutions.bestpublishing.contentchecker.services.ContentFolderImporterService;
+import org.marversolutions.bestpublishing.contentingestion.exceptions.ContentIngestionException;
+import org.marversolutions.bestpublishing.contentingestion.services.ContentIngestionService;
+import org.marversolutions.bestpublishing.services.AlfrescoRepoUtilsService;
+import org.marversolutions.bestpublishing.services.BestPubUtilsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedMetric;
+//import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.jmx.support.MetricType;
+//import org.springframework.jmx.support.MetricType;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +48,13 @@ import java.util.Date;
         description = "BestPub Content Ingestion scanning for Book Content ZIPs")
 public class ContentIngestionExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ContentIngestionExecuter.class);
+
+    /**
+     * Best Pub Specific services
+     */
+    private BestPubUtilsService bestPubUtilsService;
+    private AlfrescoRepoUtilsService repoUtils;
+    private ContentIngestionService contentImporterService;
 
     /**
      * Alfresco specific services
@@ -70,7 +79,6 @@ public class ContentIngestionExecuter {
     /**
      * Spring Dependency Injection
      */
-
     public void setFilePathToCheck(String filePathToCheck) { this.filePathToCheck = filePathToCheck; }
     public void setContentFolderPath(String contentFolderPath) { this.contentFolderPath = contentFolderPath; }
     public void setCronExpression(String cronExpression) { this.cronExpression = cronExpression; }
@@ -78,8 +86,11 @@ public class ContentIngestionExecuter {
     public void setRepoUtils(AlfrescoRepoUtilsService repoUtils) {
         this.repoUtils = repoUtils;
     }
-    public void setContentImporterService(ContentFolderImporterService contentImporterService) {
+    public void setContentImporterService(ContentIngestionService contentImporterService) {
         this.contentImporterService = contentImporterService;}
+    public void setBestPubUtilsService(BestPubUtilsService bestPubUtilsService) {
+        this.bestPubUtilsService = bestPubUtilsService;
+    }
     public void setNodeService(NodeService nodeService) {
         this.nodeService = nodeService;
     }
@@ -97,23 +108,23 @@ public class ContentIngestionExecuter {
     public Date getLastRunTime() { return this.lastRunTime; }
     @ManagedAttribute(description = "Number of times it has run" )
     public long getNumberOfRuns() { return this.numberOfRuns; }
-    @ManagedMetric(category="utilization", displayName="ZIP Queue Size",
-            description="The size of the ZIP File Queue",
-            metricType = MetricType.COUNTER, unit="zips")
+//    @ManagedMetric(category="utilization", displayName="ZIP Queue Size",
+  //          description="The size of the ZIP File Queue",
+    //        metricType = MetricType.COUNTER, unit="zips")
     public long getZipQueueSize() { return this.zipQueueSize; }
 
     /**
      * Executer implementation
      */
     public void execute() {
-        LOG.debug("Running the content checker");
+        LOG.debug("Running the content ingestion");
 
         // Running stats
         lastRunTime = new Date();
         numberOfRuns++;
 
-        // Get the node references for the /Company Home/Data Dictionary/BESTPUB/Incoming/Content
-        // folder where this content checker action will upload the content
+        // Get the node references for the /Company Home/Data Dictionary/BestPub/Incoming/Content
+        // folder where this content ingestion action will upload the content
         NodeRef contentFolderNodeRef = repoUtils.getNodeByXPath(contentFolderPath);
 
         try {
@@ -123,19 +134,13 @@ public class ContentIngestionExecuter {
             if (!folder.exists()) {
                 throw new ContentIngestionException("Folder to check does not exist.");
             }
-
             if (!folder.isDirectory()) {
-                throw new ContentIngestionException("The file path must be to a folder.");
+                throw new ContentIngestionException("The file path must be to a directory.");
             }
 
-            File[] zipFiles = boppUtilsService.findFilesUsingExtension(folder, "zip");
+            File[] zipFiles = bestPubUtilsService.findFilesUsingExtension(folder, "zip");
             zipQueueSize = zipFiles.length;
             LOG.debug("Found [{}] content files", zipFiles.length);
-            if (zipFiles.length == 0) {
-                // TODO: Don't log this at the moment, just clutters the view in Dashlet
-                // TODO: and quickly makes relevant info disappears
-                //checkerLog.addEvent(new LogEventNothingFound(), new Date());
-            }
 
             for (File zipFile : zipFiles) {
                 if (processZipFile(zipFile, contentFolderNodeRef)) {
@@ -146,7 +151,7 @@ public class ContentIngestionExecuter {
                 } else {
                     // Something went wrong when processing the zip file,
                     // move it to a directory for ZIPs that failed processing
-                    boppUtilsService.moveZipToDirForFailedProcessing(zipFile, filePathToCheck);
+                    bestPubUtilsService.moveZipToDirForFailedProcessing(zipFile, filePathToCheck);
                 }
 
                 zipQueueSize--;
@@ -154,7 +159,7 @@ public class ContentIngestionExecuter {
 
             LOG.debug("Processed [{}] content ZIP files", zipFiles.length);
         } catch (Exception e) {
-            LOG.error("Encountered an error checking for content - exiting", e);
+            LOG.error("Encountered an error when ingesting content - exiting", e);
         }
     }
 
@@ -170,29 +175,22 @@ public class ContentIngestionExecuter {
         LOG.debug("Processing zip file [{}]", zipFile.getName());
 
         String isbn = FilenameUtils.removeExtension(zipFile.getName());
-        if (!boppUtilsService.isISBN(isbn)) {
+        if (!bestPubUtilsService.isISBN(isbn)) {
             LOG.error("Error processing zip file [{}], filename is not an ISBN number", zipFile.getName());
-            //try {
-                //checkerLog.addEvent(new LogEventErrorProcessing(zipFile.getName(),
-                  //      "Filename is not an ISBN number"), new Date());
-            //} catch (XMLStreamException | IOException e2) {
-              //  LOG.error("Error writing LogEventErrorProcessing to content checker log. " +
-                //        "Had an error processing zip file [" + zipFile.getName() + "]", e2);
-            //}
 
             return false;
         }
 
-        // Check if ISBN already exists under /Company Home/Data Dictionary/BESTPUB/Incoming/Content
+        // Check if ISBN already exists under /Company Home/Data Dictionary/BestPub/Incoming/Content
         NodeRef targetContentFolderNodeRef = null;
         NodeRef isbnFolderNodeRef = repoUtils.getChildByName(contentFolderNodeRef, isbn);
         if (isbnFolderNodeRef == null) {
             // We got a new ISBN that has not been published before
-            // And this means uploading the content package to /Data Dictionary/BESTPUB/Incoming/Content
+            // And this means uploading the content package to /Data Dictionary/BestPub/Incoming/Content
             targetContentFolderNodeRef = contentFolderNodeRef;
 
             LOG.debug("Found new ISBN {} that has not been published before, " +
-                    "uploading to /Data Dictionary/BOPP/Incoming/Content", isbn);
+                    "uploading to /Data Dictionary/BestPub/Incoming/Content", isbn);
         } else {
             // We got an ISBN that has already been published, so we need to republish it
             // And this means uploading the content package to /Data Dictionary/BESTPUB/Incoming/Content/Republish
@@ -231,15 +229,7 @@ public class ContentIngestionExecuter {
             contentImporterService.importZipFileContent(zipFile, targetContentFolderNodeRef, isbn);
             return true;
         } catch (Exception e) {
-            String extraDetails = e.getMessage();
-            /*
-            try {
-                LOG.error("Error processing zip file " +  zipFile.getName(), e);
-                checkerLog.addEvent(new LogEventErrorProcessing(zipFile.getName(), extraDetails), new Date());
-            } catch (XMLStreamException | IOException e2) {
-                LOG.error("Error writing LogEventErrorProcessing to content checker log. " +
-                        "Had an error processing zip file " + zipFile.getName(), e2);
-            }*/
+            LOG.error("Error processing zip file " +  zipFile.getName(), e);
         }
 
         return false;

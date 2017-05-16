@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- Scheduled jobs definitions -->
+
+    <bean id="org.marversolutions.bestpublishing.contentchecker.jobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+        <property name="jobClass">
+            <value>org.marversolutions.bestpublishing.jobs.ContentCheckerJob</value>
+        </property>
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="contentCheckerExecuter">
+                    <ref bean="org.marversolutions.bestpublishing.actions.contentCheckerExecuter" />
+                </entry>
+                <entry key="jobLockService">
+                    <ref bean="jobLockService" />
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="org.marversolutions.bestpublishing.contentchecker.trigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail">
+            <ref bean="org.marversolutions.bestpublishing.contentchecker.jobDetail" />
+        </property>
+        <property name="cronExpression">
+            <value>${bopp.checker.content.cronexpression}</value>
+        </property>
+        <property name="startDelay">
+            <value>${bopp.checker.content.cronstartdelay}</value>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="org.marversolutions.bestpublishing.contentchecker.trigger"/>
+            </list>
+        </property>
+    </bean>
+
+</beans>
