@@ -17,7 +17,6 @@ limitations under the License.
 package org.marversolutions.bestpublishing.contentingestion.actions;
 
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.io.FilenameUtils;
 import org.marversolutions.bestpublishing.contentingestion.exceptions.ContentIngestionException;
 import org.marversolutions.bestpublishing.contentingestion.services.ContentIngestionService;
@@ -54,12 +53,7 @@ public class ContentIngestionExecuter {
      */
     private BestPubUtilsService bestPubUtilsService;
     private AlfrescoRepoUtilsService repoUtils;
-    private ContentIngestionService contentImporterService;
-
-    /**
-     * Alfresco specific services
-     */
-    private NodeService nodeService;
+    private ContentIngestionService contentIngestionService;
 
     /**
      * Content Ingestion config
@@ -86,13 +80,10 @@ public class ContentIngestionExecuter {
     public void setRepoUtils(AlfrescoRepoUtilsService repoUtils) {
         this.repoUtils = repoUtils;
     }
-    public void setContentImporterService(ContentIngestionService contentImporterService) {
-        this.contentImporterService = contentImporterService;}
+    public void setContentIngestionService(ContentIngestionService contentIngestionService) {
+        this.contentIngestionService = contentIngestionService;}
     public void setBestPubUtilsService(BestPubUtilsService bestPubUtilsService) {
         this.bestPubUtilsService = bestPubUtilsService;
-    }
-    public void setNodeService(NodeService nodeService) {
-        this.nodeService = nodeService;
     }
 
     /**
@@ -226,7 +217,7 @@ public class ContentIngestionExecuter {
         }
 
         try {
-            contentImporterService.importZipFileContent(zipFile, targetContentFolderNodeRef, isbn);
+            contentIngestionService.importZipFileContent(zipFile, targetContentFolderNodeRef, isbn);
             return true;
         } catch (Exception e) {
             LOG.error("Error processing zip file " +  zipFile.getName(), e);

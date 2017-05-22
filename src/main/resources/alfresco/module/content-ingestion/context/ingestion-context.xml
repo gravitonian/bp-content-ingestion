@@ -7,14 +7,13 @@
         Content Ingestion definition with Management Bean config
     -->
 
-    <bean id="org.marversolutions.bestpublishing.actions.contentIngestionExecuter"
+    <bean id="org.marversolutions.bestpublishing.contentingestion.actions.contentIngestionExecuter"
           class="org.marversolutions.bestpublishing.contentingestion.actions.ContentIngestionExecuter">
         <property name="filePathToCheck" value="${bestpub.ingestion.content.filepathtocheck}"/>
         <property name="contentFolderPath" value="${bestpub.ingestion.content.contentfolderpath}"/>
         <property name="cronExpression" value="${bestpub.ingestion.content.cronexpression}"/>
         <property name="cronStartDelay" value="${bestpub.ingestion.content.cronstartdelay}"/>
 
-        <property name="serviceRegistry" ref="ServiceRegistry"/>
         <property name="repoUtils" ref="org.marversolutions.bestpublishing.services.alfrescoRepoUtilsService"/>
         <property name="bestPubUtilsService" ref="org.marversolutions.bestpublishing.services.bestPubUtilsService"/>
         <property name="contentIngestionService"

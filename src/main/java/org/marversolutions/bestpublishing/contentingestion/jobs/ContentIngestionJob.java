@@ -33,7 +33,7 @@ import org.quartz.StatefulJob;
  * <p/>
  * Important: implement StatefulJob so the job is not triggered concurrently by the scheduler
  *
- * @author martin.bergljung@ixxus.com
+ * @author martin.bergljung@marversolutions.org
  */
 public class ContentIngestionJob extends AbstractScheduledLockedJob implements StatefulJob {
     @Override
@@ -41,17 +41,18 @@ public class ContentIngestionJob extends AbstractScheduledLockedJob implements S
         JobDataMap jobData = context.getJobDetail().getJobDataMap();
 
         // Extract the Content Checker to use
-        Object contentCheckerExecuterObj = jobData.get("contentIngestionExecuter");
-        if (contentCheckerExecuterObj == null || !(contentCheckerExecuterObj instanceof ContentIngestionExecuter)) {
+        Object contentIngestionExecuterObj = jobData.get("contentIngestionExecuter");
+        if (contentIngestionExecuterObj == null || !(contentIngestionExecuterObj instanceof ContentIngestionExecuter)) {
             throw new AlfrescoRuntimeException(
-                    "ContentCheckerJob data must contain valid 'contentCheckerExecuter' reference");
+                    "ContentIngestionJob data must contain valid 'contentIngestionExecuter' reference");
         }
 
-        final ContentIngestionExecuter contentCheckerExecuter = (ContentIngestionExecuter) contentCheckerExecuterObj;
+        final ContentIngestionExecuter contentIngestionExecuter =
+                (ContentIngestionExecuter) contentIngestionExecuterObj;
 
         AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Object>() {
             public Object doWork() throws Exception {
-                contentCheckerExecuter.execute();
+                contentIngestionExecuter.execute();
                 return null;
             }
         }, AuthenticationUtil.getSystemUserName());

@@ -6,14 +6,15 @@
 
 	<!-- Scheduled jobs definitions -->
 
-    <bean id="org.marversolutions.bestpublishing.contentchecker.jobDetail" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <bean id="org.marversolutions.bestpublishing.contentingestion.jobDetail"
+          class="org.springframework.scheduling.quartz.JobDetailBean">
         <property name="jobClass">
-            <value>org.marversolutions.bestpublishing.jobs.ContentCheckerJob</value>
+            <value>org.marversolutions.bestpublishing.contentingestion.jobs.ContentIngestionJob</value>
         </property>
         <property name="jobDataAsMap">
             <map>
-                <entry key="contentCheckerExecuter">
-                    <ref bean="org.marversolutions.bestpublishing.actions.contentCheckerExecuter" />
+                <entry key="contentIngestionExecuter">
+                    <ref bean="org.marversolutions.bestpublishing.contentingestion.actions.contentIngestionExecuter" />
                 </entry>
                 <entry key="jobLockService">
                     <ref bean="jobLockService" />
@@ -22,22 +23,23 @@
         </property>
     </bean>
 
-    <bean id="org.marversolutions.bestpublishing.contentchecker.trigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <bean id="org.marversolutions.bestpublishing.contentingestion.trigger"
+          class="org.springframework.scheduling.quartz.CronTriggerBean">
         <property name="jobDetail">
-            <ref bean="org.marversolutions.bestpublishing.contentchecker.jobDetail" />
+            <ref bean="org.marversolutions.bestpublishing.contentingestion.jobDetail" />
         </property>
         <property name="cronExpression">
-            <value>${bopp.checker.content.cronexpression}</value>
+            <value>${bestpub.ingestion.content.cronexpression}</value>
         </property>
         <property name="startDelay">
-            <value>${bopp.checker.content.cronstartdelay}</value>
+            <value>${bestpub.ingestion.content.cronstartdelay}</value>
         </property>
     </bean>
 
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
-                <ref bean="org.marversolutions.bestpublishing.contentchecker.trigger"/>
+                <ref bean="org.marversolutions.bestpublishing.contentingestion.trigger"/>
             </list>
         </property>
     </bean>
