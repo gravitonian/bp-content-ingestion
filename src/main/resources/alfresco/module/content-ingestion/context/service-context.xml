@@ -20,10 +20,10 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean id="org.marversolutions.bestpublishing.contentingestion.services.contentIngestionService"
-          class="org.marversolutions.bestpublishing.contentingestion.services.ContentIngestionServiceImpl">
+    <bean id="org.acme.bestpublishing.contentingestion.services.contentIngestionService"
+          class="org.acme.bestpublishing.contentingestion.services.ContentIngestionServiceImpl">
         <property name="alfrescoRepoUtilsService"
-                  ref="org.marversolutions.bestpublishing.services.alfrescoRepoUtilsService" />
+                  ref="org.acme.bestpublishing.services.alfrescoRepoUtilsService" />
         <property name="serviceRegistry" ref="ServiceRegistry"/>
     </bean>
 

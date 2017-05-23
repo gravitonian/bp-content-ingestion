@@ -7,17 +7,17 @@
         Content Ingestion definition with Management Bean config
     -->
 
-    <bean id="org.marversolutions.bestpublishing.contentingestion.actions.contentIngestionExecuter"
-          class="org.marversolutions.bestpublishing.contentingestion.actions.ContentIngestionExecuter">
+    <bean id="org.acme.bestpublishing.contentingestion.actions.contentIngestionExecuter"
+          class="org.acme.bestpublishing.contentingestion.actions.ContentIngestionExecuter">
         <property name="filesystemPathToCheck" value="${bestpub.ingestion.content.filesystemPathToCheck}"/>
         <property name="alfrescofolderpath" value="${bestpub.ingestion.content.alfrescofolderpath}"/>
         <property name="cronExpression" value="${bestpub.ingestion.content.cronexpression}"/>
         <property name="cronStartDelay" value="${bestpub.ingestion.content.cronstartdelay}"/>
 
-        <property name="alfrescoRepoUtilsService" ref="org.marversolutions.bestpublishing.services.alfrescoRepoUtilsService"/>
-        <property name="bestPubUtilsService" ref="org.marversolutions.bestpublishing.services.bestPubUtilsService"/>
+        <property name="alfrescoRepoUtilsService" ref="org.acme.bestpublishing.services.alfrescoRepoUtilsService"/>
+        <property name="bestPubUtilsService" ref="org.acme.bestpublishing.services.bestPubUtilsService"/>
         <property name="contentIngestionService"
-                  ref="org.marversolutions.bestpublishing.contentingestion.services.contentIngestionService"/>
+                  ref="org.acme.bestpublishing.contentingestion.services.contentIngestionService"/>
     </bean>
 
     <!--
@@ -30,7 +30,7 @@
     <bean id="jmxNamingStrategy" class="org.springframework.jmx.export.naming.MetadataNamingStrategy">
         <property name="attributeSource" ref="jmxAttributeSource" />
     </bean>
-    <bean id="org.marversolutions.bestpublishing.ManagementBeanExporter"
+    <bean id="org.acme.bestpublishing.ManagementBeanExporter"
           class="org.springframework.jmx.export.MBeanExporter"
           lazy-init="false">
         <property name="server" ref="alfrescoMBeanServer"/>

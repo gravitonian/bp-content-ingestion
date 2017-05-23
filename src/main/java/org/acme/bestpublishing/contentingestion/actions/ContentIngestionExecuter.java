@@ -14,14 +14,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package org.marversolutions.bestpublishing.contentingestion.actions;
+package org.acme.bestpublishing.contentingestion.actions;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.apache.commons.io.FilenameUtils;
-import org.marversolutions.bestpublishing.contentingestion.exceptions.ContentIngestionException;
-import org.marversolutions.bestpublishing.contentingestion.services.ContentIngestionService;
-import org.marversolutions.bestpublishing.services.AlfrescoRepoUtilsService;
-import org.marversolutions.bestpublishing.services.BestPubUtilsService;
+import org.acme.bestpublishing.contentingestion.exceptions.ContentIngestionException;
+import org.acme.bestpublishing.contentingestion.services.ContentIngestionService;
+import org.acme.bestpublishing.services.AlfrescoRepoUtilsService;
+import org.acme.bestpublishing.services.BestPubUtilsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ import java.util.Date;
  * @version 1.0
  */
 @ManagedResource(
-        objectName = "org.marversolutions:application=BestPublishing,type=Ingestion,name=ContentIngestion",
+        objectName = "org.acme:application=BestPublishing,type=Ingestion,name=ContentIngestion",
         description = "BestPub Content Ingestion scanning for Book Content ZIPs")
 public class ContentIngestionExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ContentIngestionExecuter.class);

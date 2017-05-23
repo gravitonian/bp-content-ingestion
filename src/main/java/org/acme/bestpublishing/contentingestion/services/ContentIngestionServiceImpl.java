@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package org.marversolutions.bestpublishing.contentingestion.services;
+package org.acme.bestpublishing.contentingestion.services;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.ServiceRegistry;
@@ -23,11 +23,11 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.marversolutions.bestpublishing.contentingestion.exceptions.ContentIngestionException;
-import org.marversolutions.bestpublishing.error.ProcessingError;
-import org.marversolutions.bestpublishing.error.ProcessingErrorCode;
-import org.marversolutions.bestpublishing.model.BestPubContentModel;
-import org.marversolutions.bestpublishing.services.AlfrescoRepoUtilsService;
+import org.acme.bestpublishing.contentingestion.exceptions.ContentIngestionException;
+import org.acme.bestpublishing.error.ProcessingError;
+import org.acme.bestpublishing.error.ProcessingErrorCode;
+import org.acme.bestpublishing.model.BestPubContentModel;
+import org.acme.bestpublishing.services.AlfrescoRepoUtilsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static org.marversolutions.bestpublishing.constants.BestPubConstants.*;
+import static org.acme.bestpublishing.constants.BestPubConstants.*;
 
 /*
  * Implementation of the Content Ingestion Service, extracts ZIP to temporary location in local filesystem

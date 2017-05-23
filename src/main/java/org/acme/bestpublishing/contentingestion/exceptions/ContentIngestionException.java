@@ -14,9 +14,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package org.marversolutions.bestpublishing.contentingestion.exceptions;
+package org.acme.bestpublishing.contentingestion.exceptions;
 
-import org.marversolutions.bestpublishing.error.ProcessingError;
+import org.acme.bestpublishing.error.ProcessingError;
 
 /*
  * Represents an error that occurs during the content ingestion execution.

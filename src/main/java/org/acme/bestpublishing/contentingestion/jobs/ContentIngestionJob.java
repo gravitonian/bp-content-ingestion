@@ -14,12 +14,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package org.marversolutions.bestpublishing.contentingestion.jobs;
+package org.acme.bestpublishing.contentingestion.jobs;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.schedule.AbstractScheduledLockedJob;
-import org.marversolutions.bestpublishing.contentingestion.actions.ContentIngestionExecuter;
+import org.acme.bestpublishing.contentingestion.actions.ContentIngestionExecuter;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;

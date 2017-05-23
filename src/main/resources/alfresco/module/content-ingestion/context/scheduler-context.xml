@@ -6,15 +6,15 @@
 
 	<!-- Scheduled jobs definitions -->
 
-    <bean id="org.marversolutions.bestpublishing.contentingestion.jobDetail"
+    <bean id="org.acme.bestpublishing.contentingestion.jobDetail"
           class="org.springframework.scheduling.quartz.JobDetailBean">
         <property name="jobClass">
-            <value>org.marversolutions.bestpublishing.contentingestion.jobs.ContentIngestionJob</value>
+            <value>org.acme.bestpublishing.contentingestion.jobs.ContentIngestionJob</value>
         </property>
         <property name="jobDataAsMap">
             <map>
                 <entry key="contentIngestionExecuter">
-                    <ref bean="org.marversolutions.bestpublishing.contentingestion.actions.contentIngestionExecuter" />
+                    <ref bean="org.acme.bestpublishing.contentingestion.actions.contentIngestionExecuter" />
                 </entry>
                 <entry key="jobLockService">
                     <ref bean="jobLockService" />
@@ -23,10 +23,10 @@
         </property>
     </bean>
 
-    <bean id="org.marversolutions.bestpublishing.contentingestion.trigger"
+    <bean id="org.acme.bestpublishing.contentingestion.trigger"
           class="org.springframework.scheduling.quartz.CronTriggerBean">
         <property name="jobDetail">
-            <ref bean="org.marversolutions.bestpublishing.contentingestion.jobDetail" />
+            <ref bean="org.acme.bestpublishing.contentingestion.jobDetail" />
         </property>
         <property name="cronExpression">
             <value>${bestpub.ingestion.content.cronexpression}</value>
@@ -39,7 +39,7 @@
     <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
         <property name="triggers">
             <list>
-                <ref bean="org.marversolutions.bestpublishing.contentingestion.trigger"/>
+                <ref bean="org.acme.bestpublishing.contentingestion.trigger"/>
             </list>
         </property>
     </bean>
