@@ -16,7 +16,7 @@
 
         <property name="alfrescoRepoUtilsService" ref="org.acme.bestpublishing.services.alfrescoRepoUtilsService"/>
         <property name="bestPubUtilsService" ref="org.acme.bestpublishing.services.bestPubUtilsService"/>
-        <property name="contentIngestionService"
+        <property name="ingestionService"
                   ref="org.acme.bestpublishing.contentingestion.services.contentIngestionService"/>
     </bean>
 

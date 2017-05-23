@@ -16,6 +16,8 @@ limitations under the License.
 */
 package org.acme.bestpublishing.contentingestion.services;
 
+import org.acme.bestpublishing.exceptions.IngestionException;
+import org.acme.bestpublishing.services.IngestionService;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -23,7 +25,6 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.acme.bestpublishing.contentingestion.exceptions.ContentIngestionException;
 import org.acme.bestpublishing.error.ProcessingError;
 import org.acme.bestpublishing.error.ProcessingErrorCode;
 import org.acme.bestpublishing.model.BestPubContentModel;
@@ -44,13 +45,13 @@ import static org.acme.bestpublishing.constants.BestPubConstants.*;
 
 /*
  * Implementation of the Content Ingestion Service, extracts ZIP to temporary location in local filesystem
- * and imports into Alfresco Repository from there.
+ * and imports into Alfresco Repository folder from there.
  *
  * @author martin.bergljung@marversolutions.org
  * @version 1.0
  */
 @Transactional(readOnly = true)
-public class ContentIngestionServiceImpl implements ContentIngestionService {
+public class ContentIngestionServiceImpl implements IngestionService {
     private static final Logger LOG = LoggerFactory.getLogger(ContentIngestionServiceImpl.class);
 
     /**
@@ -100,13 +101,13 @@ public class ContentIngestionServiceImpl implements ContentIngestionService {
 
     @Override
     @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-    public void importZipFileContent(final File file, final NodeRef parentContentFolderNodeRef, final String isbn) {
+    public void importZipFileContent(final File file, final NodeRef alfrescoFolderNodeRef, final String isbn) {
         // Create the main ISBN folder where all the content should be ingested
-        NodeRef isbnFolderNodeRef = createIsbnFolder(parentContentFolderNodeRef, isbn);
+        NodeRef isbnFolderNodeRef = createIsbnFolder(alfrescoFolderNodeRef, isbn);
         if (isbnFolderNodeRef == null) {
             String extraDetails = "Could not create new ISBN folder for " + isbn + " under " +
-                    serviceRegistry.getNodeService().getPath(parentContentFolderNodeRef).toString();
-            throw new ContentIngestionException(extraDetails);
+                    serviceRegistry.getNodeService().getPath(alfrescoFolderNodeRef).toString();
+            throw new IngestionException(extraDetails);
         }
 
         // Process and ingest all content in the Content ZIP
@@ -174,7 +175,7 @@ public class ContentIngestionServiceImpl implements ContentIngestionService {
             zipFile.close();
         } catch (IOException ioe) {
             String msg = "Error extracting content ZIP " + zipFile.getName() + " [error=" + ioe.getMessage() + "]";
-            throw new ContentIngestionException(
+            throw new IngestionException(
                     new ProcessingError(ProcessingErrorCode.CONTENT_INGESTION_EXTRACT_ZIP, msg, ioe));
         }
     }
