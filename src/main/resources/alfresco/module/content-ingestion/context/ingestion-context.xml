@@ -9,12 +9,12 @@
 
     <bean id="org.marversolutions.bestpublishing.contentingestion.actions.contentIngestionExecuter"
           class="org.marversolutions.bestpublishing.contentingestion.actions.ContentIngestionExecuter">
-        <property name="filePathToCheck" value="${bestpub.ingestion.content.filepathtocheck}"/>
-        <property name="contentFolderPath" value="${bestpub.ingestion.content.contentfolderpath}"/>
+        <property name="filesystemPathToCheck" value="${bestpub.ingestion.content.filesystemPathToCheck}"/>
+        <property name="alfrescofolderpath" value="${bestpub.ingestion.content.alfrescofolderpath}"/>
         <property name="cronExpression" value="${bestpub.ingestion.content.cronexpression}"/>
         <property name="cronStartDelay" value="${bestpub.ingestion.content.cronstartdelay}"/>
 
-        <property name="repoUtils" ref="org.marversolutions.bestpublishing.services.alfrescoRepoUtilsService"/>
+        <property name="alfrescoRepoUtilsService" ref="org.marversolutions.bestpublishing.services.alfrescoRepoUtilsService"/>
         <property name="bestPubUtilsService" ref="org.marversolutions.bestpublishing.services.bestPubUtilsService"/>
         <property name="contentIngestionService"
                   ref="org.marversolutions.bestpublishing.contentingestion.services.contentIngestionService"/>

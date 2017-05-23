@@ -16,6 +16,8 @@ limitations under the License.
 */
 package org.marversolutions.bestpublishing.contentingestion.exceptions;
 
+import org.marversolutions.bestpublishing.error.ProcessingError;
+
 /*
  * Represents an error that occurs during the content ingestion execution.
  *

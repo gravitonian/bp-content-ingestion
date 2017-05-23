@@ -35,9 +35,16 @@ import java.io.IOException;
 import java.util.Date;
 
 /**
- /*
  * Checks for zip files in a specified folder, extracts them and then ingests the contents
  * of the zip file into Alfresco as book content, such as chapters.
+ * Example Log:
+ * Checking for Content ZIPs...
+ * File path to check = [/Users/martin/Documents/content]
+ * Found [1] content files
+ * Processing zip file [9780486282146.zip]
+ * Found new ISBN 9780486282146 that has not been published before, uploading to /Data Dictionary/BestPub/Incoming/Content
+ * Creating ISBN folder for 9780486282146
+ * Processed [1] content ZIP files
  *
  * @author martin.bergljung@marversolutions.org
  * @version 1.0
@@ -52,14 +59,14 @@ public class ContentIngestionExecuter {
      * Best Pub Specific services
      */
     private BestPubUtilsService bestPubUtilsService;
-    private AlfrescoRepoUtilsService repoUtils;
+    private AlfrescoRepoUtilsService alfrescoRepoUtilsService;
     private ContentIngestionService contentIngestionService;
 
     /**
      * Content Ingestion config
      */
-    private String filePathToCheck;
-    private String contentFolderPath;
+    private String filesystemPathToCheck;
+    private String alfrescoFolderPath;
     private String cronExpression;
     private int cronStartDelay;
 
@@ -73,15 +80,30 @@ public class ContentIngestionExecuter {
     /**
      * Spring Dependency Injection
      */
-    public void setFilePathToCheck(String filePathToCheck) { this.filePathToCheck = filePathToCheck; }
-    public void setContentFolderPath(String contentFolderPath) { this.contentFolderPath = contentFolderPath; }
-    public void setCronExpression(String cronExpression) { this.cronExpression = cronExpression; }
-    public void setCronStartDelay(int cronStartDelay) { this.cronStartDelay = cronStartDelay; }
-    public void setRepoUtils(AlfrescoRepoUtilsService repoUtils) {
-        this.repoUtils = repoUtils;
+    public void setFilesystemPathToCheck(String filesystemPathToCheck) {
+        this.filesystemPathToCheck = filesystemPathToCheck;
     }
+
+    public void setAlfrescoFolderPath(String alfrescoFolderPath) {
+        this.alfrescoFolderPath = alfrescoFolderPath;
+    }
+
+    public void setCronExpression(String cronExpression) {
+        this.cronExpression = cronExpression;
+    }
+
+    public void setCronStartDelay(int cronStartDelay) {
+        this.cronStartDelay = cronStartDelay;
+    }
+
+    public void setAlfrescoRepoUtilsService(AlfrescoRepoUtilsService alfrescoRepoUtilsService) {
+        this.alfrescoRepoUtilsService = alfrescoRepoUtilsService;
+    }
+
     public void setContentIngestionService(ContentIngestionService contentIngestionService) {
-        this.contentIngestionService = contentIngestionService;}
+        this.contentIngestionService = contentIngestionService;
+    }
+
     public void setBestPubUtilsService(BestPubUtilsService bestPubUtilsService) {
         this.bestPubUtilsService = bestPubUtilsService;
     }
@@ -89,26 +111,43 @@ public class ContentIngestionExecuter {
     /**
      * Managed Properties (JMX)
      */
-    @ManagedAttribute(description = "Path to content ZIP files" )
-    public String getFilePathToCheck() { return this.filePathToCheck;}
-    @ManagedAttribute(description = "Cron expression controlling execution" )
-    public String getCronExpression() { return this.cronExpression;}
-    @ManagedAttribute(description = "Ingestion start delay after bootstrap (ms)" )
-    public int getCronStartDelay() { return this.cronStartDelay;}
-    @ManagedAttribute(description = "Last time it was called" )
-    public Date getLastRunTime() { return this.lastRunTime; }
-    @ManagedAttribute(description = "Number of times it has run" )
-    public long getNumberOfRuns() { return this.numberOfRuns; }
-//    @ManagedMetric(category="utilization", displayName="ZIP Queue Size",
-  //          description="The size of the ZIP File Queue",
+    @ManagedAttribute(description = "Path to content ZIP files")
+    public String getFilesystemPathToCheck() {
+        return this.filesystemPathToCheck;
+    }
+
+    @ManagedAttribute(description = "Cron expression controlling execution")
+    public String getCronExpression() {
+        return this.cronExpression;
+    }
+
+    @ManagedAttribute(description = "Ingestion start delay after bootstrap (ms)")
+    public int getCronStartDelay() {
+        return this.cronStartDelay;
+    }
+
+    @ManagedAttribute(description = "Last time it was called")
+    public Date getLastRunTime() {
+        return this.lastRunTime;
+    }
+
+    @ManagedAttribute(description = "Number of times it has run")
+    public long getNumberOfRuns() {
+        return this.numberOfRuns;
+    }
+
+    //    @ManagedMetric(category="utilization", displayName="ZIP Queue Size",
+    //          description="The size of the ZIP File Queue",
     //        metricType = MetricType.COUNTER, unit="zips")
-    public long getZipQueueSize() { return this.zipQueueSize; }
+    public long getZipQueueSize() {
+        return this.zipQueueSize;
+    }
 
     /**
      * Executer implementation
      */
     public void execute() {
-        LOG.debug("Running the content ingestion");
+        LOG.debug("Checking for Content ZIPs...");
 
         // Running stats
         lastRunTime = new Date();
@@ -116,12 +155,12 @@ public class ContentIngestionExecuter {
 
         // Get the node references for the /Company Home/Data Dictionary/BestPub/Incoming/Content
         // folder where this content ingestion action will upload the content
-        NodeRef contentFolderNodeRef = repoUtils.getNodeByXPath(contentFolderPath);
+        NodeRef contentIncomingFolderNodeRef = alfrescoRepoUtilsService.getNodeByXPath(alfrescoFolderPath);
 
         try {
-            LOG.debug("File path to check = [{}]", filePathToCheck);
+            LOG.debug("File path to check = [{}]", filesystemPathToCheck);
 
-            File folder = new File(filePathToCheck);
+            File folder = new File(filesystemPathToCheck);
             if (!folder.exists()) {
                 throw new ContentIngestionException("Folder to check does not exist.");
             }
@@ -134,7 +173,7 @@ public class ContentIngestionExecuter {
             LOG.debug("Found [{}] content files", zipFiles.length);
 
             for (File zipFile : zipFiles) {
-                if (processZipFile(zipFile, contentFolderNodeRef)) {
+                if (processZipFile(zipFile, contentIncomingFolderNodeRef)) {
                     // All done, delete the ZIP
                     zipFile.delete();
 
@@ -142,7 +181,7 @@ public class ContentIngestionExecuter {
                 } else {
                     // Something went wrong when processing the zip file,
                     // move it to a directory for ZIPs that failed processing
-                    bestPubUtilsService.moveZipToDirForFailedProcessing(zipFile, filePathToCheck);
+                    bestPubUtilsService.moveZipToDirForFailedProcessing(zipFile, filesystemPathToCheck);
                 }
 
                 zipQueueSize--;
@@ -157,8 +196,8 @@ public class ContentIngestionExecuter {
     /**
      * Process one Content ZIP file and upload its content to Alfresco
      *
-     * @param zipFile                       the ZIP file that should be processed and uploaded
-     * @param contentFolderNodeRef          the target folder for new ISBN content packages
+     * @param zipFile              the ZIP file that should be processed and uploaded
+     * @param contentFolderNodeRef the target folder for new ISBN content packages
      * @return true if processed file ok, false if there was an error
      */
     private boolean processZipFile(File zipFile, NodeRef contentFolderNodeRef)
@@ -174,7 +213,7 @@ public class ContentIngestionExecuter {
 
         // Check if ISBN already exists under /Company Home/Data Dictionary/BestPub/Incoming/Content
         NodeRef targetContentFolderNodeRef = null;
-        NodeRef isbnFolderNodeRef = repoUtils.getChildByName(contentFolderNodeRef, isbn);
+        NodeRef isbnFolderNodeRef = alfrescoRepoUtilsService.getChildByName(contentFolderNodeRef, isbn);
         if (isbnFolderNodeRef == null) {
             // We got a new ISBN that has not been published before
             // And this means uploading the content package to /Data Dictionary/BestPub/Incoming/Content
@@ -198,7 +237,7 @@ public class ContentIngestionExecuter {
                         "uploading to /Data Dictionary/BOPP/Incoming/Content/Republish", isbn);
 
                 // Delete old republished one if it exists (Content can be re-published multiple times)
-                isbnFolderNodeRef = repoUtils.getChildByName(republishContentFolderNodeRef, isbn);
+                isbnFolderNodeRef = alfrescoRepoUtilsService.getChildByName(republishContentFolderNodeRef, isbn);
                 if (isbnFolderNodeRef != null && nodeService.exists(isbnFolderNodeRef)) {
                     nodeService.deleteNode(isbnFolderNodeRef);
                 }
@@ -220,7 +259,7 @@ public class ContentIngestionExecuter {
             contentIngestionService.importZipFileContent(zipFile, targetContentFolderNodeRef, isbn);
             return true;
         } catch (Exception e) {
-            LOG.error("Error processing zip file " +  zipFile.getName(), e);
+            LOG.error("Error processing zip file " + zipFile.getName(), e);
         }
 
         return false;
