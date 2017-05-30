@@ -25,7 +25,6 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.acme.bestpublishing.error.ProcessingError;
 import org.acme.bestpublishing.error.ProcessingErrorCode;
 import org.acme.bestpublishing.model.BestPubContentModel;
 import org.acme.bestpublishing.services.AlfrescoRepoUtilsService;
@@ -128,7 +127,7 @@ public class ContentIngestionServiceImpl implements IngestionService {
      * /Company Home/Data Dictionary/BestPub/Incoming/Content/{ISBN}
      */
     private NodeRef createIsbnFolder(final NodeRef parentContentFolderNodeRef, final String isbn) {
-        LOG.debug("Creating ISBN folder for {}", isbn);
+        LOG.debug("Creating ISBN folder for {} content", isbn);
 
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
         properties.put(ContentModel.PROP_NAME, isbn);
@@ -151,10 +150,12 @@ public class ContentIngestionServiceImpl implements IngestionService {
      */
     private void processZipFile(final NodeRef isbnFolderNodeRef, final String isbn, final File file) {
         String currentZipDirectory = null;
-        ZipFile zipFile = null;
+        ZipFile zipFile;
+        String zipFileName = "Unknown";
 
         try {
             zipFile = new ZipFile(file);
+            zipFileName = zipFile.getName();
             Enumeration enumeration = zipFile.entries();
             while (enumeration.hasMoreElements()) {
                 ZipEntry zipEntry = (ZipEntry) enumeration.nextElement();
@@ -174,9 +175,8 @@ public class ContentIngestionServiceImpl implements IngestionService {
 
             zipFile.close();
         } catch (IOException ioe) {
-            String msg = "Error extracting content ZIP " + zipFile.getName() + " [error=" + ioe.getMessage() + "]";
-            throw new IngestionException(
-                    new ProcessingError(ProcessingErrorCode.CONTENT_INGESTION_EXTRACT_ZIP, msg, ioe));
+            String msg = "Error extracting content ZIP " + zipFileName + " [error=" + ioe.getMessage() + "]";
+            throw new IngestionException(ProcessingErrorCode.CONTENT_INGESTION_EXTRACT_ZIP, msg);
         }
     }
 
