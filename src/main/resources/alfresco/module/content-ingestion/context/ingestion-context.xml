@@ -10,9 +10,9 @@
     <bean id="org.acme.bestpublishing.contentingestion.actions.contentIngestionExecuter"
           class="org.acme.bestpublishing.contentingestion.actions.ContentIngestionExecuter">
         <property name="filesystemPathToCheck" value="${bestpub.ingestion.content.filesystemPathToCheck}"/>
-        <property name="alfrescofolderpath" value="${bestpub.ingestion.content.alfrescofolderpath}"/>
-        <property name="cronExpression" value="${bestpub.ingestion.content.cronexpression}"/>
-        <property name="cronStartDelay" value="${bestpub.ingestion.content.cronstartdelay}"/>
+        <property name="alfrescofolderpath" value="${bestpub.ingestion.content.alfrescoFolderPath}"/>
+        <property name="cronExpression" value="${bestpub.ingestion.content.cronExpression}"/>
+        <property name="cronStartDelay" value="${bestpub.ingestion.content.cronStartDelay}"/>
 
         <property name="alfrescoRepoUtilsService" ref="org.acme.bestpublishing.services.alfrescoRepoUtilsService"/>
         <property name="bestPubUtilsService" ref="org.acme.bestpublishing.services.bestPubUtilsService"/>
@@ -22,6 +22,7 @@
 
     <!--
       Management Bean exporter based on annotations in classes
+      NOTE: Need to be only one one Spring context file...
     -->
     <bean id="jmxAttributeSource" class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource" />
     <bean id="jmxAssembler" class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler">

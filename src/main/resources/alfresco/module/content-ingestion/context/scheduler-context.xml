@@ -29,10 +29,10 @@
             <ref bean="org.acme.bestpublishing.contentingestion.jobDetail" />
         </property>
         <property name="cronExpression">
-            <value>${bestpub.ingestion.content.cronexpression}</value>
+            <value>${bestpub.ingestion.content.cronExpression}</value>
         </property>
         <property name="startDelay">
-            <value>${bestpub.ingestion.content.cronstartdelay}</value>
+            <value>${bestpub.ingestion.content.cronStartDelay}</value>
         </property>
     </bean>
 

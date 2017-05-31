@@ -66,7 +66,7 @@ public class ContentIngestionExecuter extends AbstractIngestionExecuter {
      * Process one ZIP file and upload its content to Alfresco
      *
      * @param zipFile              the ZIP file that should be processed and uploaded
-     * @param extractedISBN the ISBN number that was extracyed from ZIP file name
+     * @param extractedISBN the ISBN number that was extracted from ZIP file name
      * @param alfrescoUploadFolderNodeRef the target folder for new ISBN content
      * @return true if processed file ok, false if there was an error
      */
@@ -109,7 +109,7 @@ public class ContentIngestionExecuter extends AbstractIngestionExecuter {
             ingestionService.importZipFileContent(zipFile, targetAlfrescoFolderNodeRef, extractedISBN);
             return true;
         } catch (Exception e) {
-            getLog().error("Error processing zip file " + zipFile.getName(), e);
+            getLog().error("Error processing content zip file " + zipFile.getName(), e);
         }
 
         return false;
