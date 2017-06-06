@@ -19,6 +19,7 @@ package org.acme.bestpublishing.contentingestion.services;
 import org.acme.bestpublishing.exceptions.IngestionException;
 import org.acme.bestpublishing.services.IngestionService;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
@@ -34,6 +35,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -176,6 +179,14 @@ public class ContentIngestionServiceImpl implements IngestionService {
             zipFile.close();
         } catch (IOException ioe) {
             String msg = "Error extracting content ZIP " + zipFileName + " [error=" + ioe.getMessage() + "]";
+
+            // Create a new text file in the ISBN folder with the error message, will be picked
+            // up by the 'T5: Check For Content Error Messages' script task
+            SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+            String currentDateAndTime = sdf.format(new Date());
+            String errorFileName = isbn + "-" + currentDateAndTime + ".txt";
+            alfrescoRepoUtilsService.createFile(isbnFolderNodeRef, errorFileName, MimetypeMap.MIMETYPE_TEXT_PLAIN, msg);
+
             throw new IngestionException(ProcessingErrorCode.CONTENT_INGESTION_EXTRACT_ZIP, msg);
         }
     }

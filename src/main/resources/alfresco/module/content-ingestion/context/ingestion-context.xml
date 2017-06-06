@@ -10,7 +10,7 @@
     <bean id="org.acme.bestpublishing.contentingestion.actions.contentIngestionExecuter"
           class="org.acme.bestpublishing.contentingestion.actions.ContentIngestionExecuter">
         <property name="filesystemPathToCheck" value="${bestpub.ingestion.content.filesystemPathToCheck}"/>
-        <property name="alfrescofolderpath" value="${bestpub.ingestion.content.alfrescoFolderPath}"/>
+        <property name="alfrescoFolderPath" value="${bestpub.ingestion.content.alfrescoFolderPath}"/>
         <property name="cronExpression" value="${bestpub.ingestion.content.cronExpression}"/>
         <property name="cronStartDelay" value="${bestpub.ingestion.content.cronStartDelay}"/>
 
