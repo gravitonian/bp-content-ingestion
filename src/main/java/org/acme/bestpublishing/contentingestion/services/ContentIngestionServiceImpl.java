@@ -54,27 +54,27 @@ import static org.acme.bestpublishing.constants.BestPubConstants.*;
  */
 @Transactional(readOnly = true)
 public class ContentIngestionServiceImpl implements IngestionService {
-    private static final Logger LOG = LoggerFactory.getLogger(ContentIngestionServiceImpl.class);
+    private static Logger LOG = LoggerFactory.getLogger(ContentIngestionServiceImpl.class);
 
     /**
      * Part of filename for book content that distinguishes the file as a chapter content XHTML file
      */
-    public final static String ZIP_CHAPTER_FILENAME_PART = "chapter";
+    public static String ZIP_CHAPTER_FILENAME_PART = "chapter";
 
     /**
      * The ZIP directory that contains chapter content and supplementary content
      */
-    public final static String ZIP_CONTENT_DIR_NAME = "content";
+    public static String ZIP_CONTENT_DIR_NAME = "content";
 
     /**
      * The ZIP directory that contains artwork files
      */
-    public final static String ZIP_ARTWORK_DIR_NAME = "images";
+    public static String ZIP_ARTWORK_DIR_NAME = "images";
 
     /**
      * The ZIP directory that contains style files (css)
      */
-    public final static String ZIP_STYLES_DIR_NAME = "styles";
+    public static String ZIP_STYLES_DIR_NAME = "styles";
 
     /**
      * Alfresco Services
@@ -103,7 +103,7 @@ public class ContentIngestionServiceImpl implements IngestionService {
 
     @Override
     @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-    public void importZipFileContent(final File file, final NodeRef alfrescoFolderNodeRef, final String isbn) {
+    public void importZipFileContent(File file, NodeRef alfrescoFolderNodeRef, String isbn) {
         // Create the main ISBN folder where all the content should be ingested
         NodeRef isbnFolderNodeRef = createIsbnFolder(alfrescoFolderNodeRef, isbn);
         if (isbnFolderNodeRef == null) {
@@ -129,7 +129,7 @@ public class ContentIngestionServiceImpl implements IngestionService {
      * @return the folder node reference for this new ISBN folder, pointing to
      * /Company Home/Data Dictionary/BestPub/Incoming/Content/{ISBN}
      */
-    private NodeRef createIsbnFolder(final NodeRef parentContentFolderNodeRef, final String isbn) {
+    private NodeRef createIsbnFolder(NodeRef parentContentFolderNodeRef, String isbn) {
         LOG.debug("Creating ISBN folder for {} content", isbn);
 
         Map<QName, Serializable> properties = new HashMap<QName, Serializable>();
@@ -145,14 +145,14 @@ public class ContentIngestionServiceImpl implements IngestionService {
 
     /**
      * Unzip passed in file to a temporary location in the local filesystem.
+     * Then process each ZIP file entry.
      *
      * @param isbnFolderNodeRef ISBN folder node reference where all content are stored
      * @param isbn              the related ISBN number
      * @param file              the file to unzip
      * @return the new folder with unzipped content
      */
-    private void processZipFile(final NodeRef isbnFolderNodeRef, final String isbn, final File file) {
-        String currentZipDirectory = null;
+    private void processZipFile(NodeRef isbnFolderNodeRef, String isbn, File file) {
         ZipFile zipFile;
         String zipFileName = "Unknown";
 
@@ -162,17 +162,13 @@ public class ContentIngestionServiceImpl implements IngestionService {
             Enumeration enumeration = zipFile.entries();
             while (enumeration.hasMoreElements()) {
                 ZipEntry zipEntry = (ZipEntry) enumeration.nextElement();
-                if (zipEntry.isDirectory()) {
-                    // If the entry is a directory, save it as new current directory,
-                    // which would be something like /Chapters, /artwork, etc
-                    currentZipDirectory = zipEntry.getName();
-                } else {
+                if (!zipEntry.isDirectory()) {
                     // If the entry is a file, ingest into Alfresco in current folder
                     // (current folder will be what matches current ZIP directory)
                     // Note. the input stream for the entry is closed by Alfresco ContentWriter,
                     // and also when you close ZipFile
                     BufferedInputStream bis = new BufferedInputStream(zipFile.getInputStream(zipEntry));
-                    processZipFileEntry(zipEntry, bis, currentZipDirectory, isbn, isbnFolderNodeRef);
+                    processZipFileEntry(zipEntry, bis, isbnFolderNodeRef);
                 }
             }
 
@@ -192,37 +188,37 @@ public class ContentIngestionServiceImpl implements IngestionService {
     }
 
     /**
-     * Extracts a zip entry (file entry) and stores in Alfresco in matching ISBN sub-folder, such as /Adobe Chapters
+     * Extracts a zip entry (file entry) and stores in Alfresco in matching ISBN sub-folder, such as /Chapters
      *
      * @param fileEntry           the ZIP information about the file
      * @param is                  input stream for the ZIP file entry
-     * @param currentZipDirectory the current ZIP directory such as "9780486282145/content/"
-     * @param isbn                the related ISBN number
      * @param isbnFolderNodeRef   the Alfresco node reference for the ISBN folder in Data Dictionary
      *                            where the content file should be stored
      */
-    private void processZipFileEntry(ZipEntry fileEntry, final InputStream is, final String currentZipDirectory,
-                                     final String isbn, final NodeRef isbnFolderNodeRef) {
-        // Get from 9780486282145/content/9780486282145-Chapter-1.pdf
-        // to 9780486282145-Chapter-1.pdf
+    private void processZipFileEntry(ZipEntry fileEntry, InputStream is, NodeRef isbnFolderNodeRef) {
+        // Get from content/9780486282145-Chapter-1.pdf to 9780486282145-Chapter-1.pdf
         String filename = FilenameUtils.getName(fileEntry.getName());
+        // Get from content/9780486282145-Chapter-1.pdf to content
+        String zipDirName = FilenameUtils.getPathNoEndSeparator(fileEntry.getName());
 
-        // Get from 9780486282145/content/
-        // to content
-        String[] pathSegments = currentZipDirectory.split("/");
-        String zipDirName = pathSegments[pathSegments.length - 1];
-
-        if (StringUtils.equalsIgnoreCase(zipDirName, ZIP_CONTENT_DIR_NAME)) {
+        if (StringUtils.isBlank(zipDirName)) {
+            // Most likely the package.opf file with the EPub layout
+            alfrescoRepoUtilsService.createFile(isbnFolderNodeRef, filename, is);
+        } else if (StringUtils.equalsIgnoreCase(zipDirName, ZIP_CONTENT_DIR_NAME)) {
             if (filename.toLowerCase().contains(ZIP_CHAPTER_FILENAME_PART)) {
                 // We got a chapter XHTML file, store it under the {ISBN}/Chapters
                 NodeRef chapterFolderNodeRef = alfrescoRepoUtilsService.getOrCreateFolder(isbnFolderNodeRef,
                         CHAPTERS_FOLDER_NAME);
                 alfrescoRepoUtilsService.createFile(chapterFolderNodeRef, filename, is);
             } else {
-                // We got a Supplementary file like ToC or Cover Image, store it under the {ISBN}/Supplementary
-                NodeRef supplementaryFolderNodeRef = alfrescoRepoUtilsService.getOrCreateFolder(isbnFolderNodeRef,
-                        SUPPLEMENTARY_FOLDER_NAME);
-                alfrescoRepoUtilsService.createFile(supplementaryFolderNodeRef, filename, is);
+                if (filename.endsWith(".xhtml")) {
+                    // We got a Supplementary file like ToC or Cover Image, store it under the {ISBN}/Supplementary
+                    NodeRef supplementaryFolderNodeRef = alfrescoRepoUtilsService.getOrCreateFolder(isbnFolderNodeRef,
+                            SUPPLEMENTARY_FOLDER_NAME);
+                    alfrescoRepoUtilsService.createFile(supplementaryFolderNodeRef, filename, is);
+                } else {
+                    LOG.warn("Found {} in the {} directory, will not ingest", filename, zipDirName);
+                }
             }
         } else if (StringUtils.equalsIgnoreCase(zipDirName, ZIP_ARTWORK_DIR_NAME)) {
             // We got an artwork file like a diagram or image, store it under the {ISBN}/Artwork
@@ -235,7 +231,7 @@ public class ContentIngestionServiceImpl implements IngestionService {
                     alfrescoRepoUtilsService.getOrCreateFolder(isbnFolderNodeRef, STYLES_FOLDER_NAME);
             alfrescoRepoUtilsService.createFile(artworkFolderNodeRef, filename, is);
         } else {
-            LOG.warn("Found {} in the {} directory, will not ingest", filename, currentZipDirectory);
+            LOG.warn("Found {} in the {} directory, will not ingest", filename, zipDirName);
         }
     }
 }
